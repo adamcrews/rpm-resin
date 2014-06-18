@@ -1,6 +1,6 @@
 Name:		resin
 Version:	3.1.12
-Release:	2%{?dist}
+Release:	3%{?dist}
 
 %define ins_prefix /usr/local/resin
 %define __jar_repack %{nil}
@@ -15,6 +15,7 @@ Patch0:		%{name}-%{version}-makefile.patch
 Patch1:		%{name}-%{version}-autoconf.patch
 
 Requires:	java7
+Requires:	java7-devel
 Requires:	openssl
 
 BuildRequires:	make
