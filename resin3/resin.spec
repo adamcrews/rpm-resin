@@ -1,6 +1,6 @@
 Name:		resin
 Version:	3.1.12
-Release:	1%{?dist}
+Release:	2%{?dist}
 
 %define ins_prefix /usr/local/resin
 %define __jar_repack %{nil}
@@ -49,17 +49,6 @@ make install DESTDIR=%{buildroot}
 
 %clean
 rm -rf %{buildroot}
-
-%post
-
-/sbin/chkconfig --add resin
-
-%preun
-if [ "$1" = 0 ]; then
-/sbin/service resin stop > /dev/null 2>&1
-/sbin/chkconfig --del resin
-fi
-exit 0
 
 %files
 %defattr(-,root,root,-)
