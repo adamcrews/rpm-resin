@@ -1,0 +1,19 @@
+diff -uNr resin-3.1.12/configure.ac resin-3.1.12p/configure.ac
+--- resin-3.1.12/configure.ac	2011-08-24 14:46:44.000000000 -0700
++++ resin-3.1.12p/configure.ac	2014-06-18 07:09:32.752746851 -0700
+@@ -1192,9 +1192,9 @@
+ contrib/init.resin
+ ], [])
+ 
+-if test -n "${resin_pro_plugin}"; then
+-  AC_OUTPUT([
+-    modules/c/src/resin/Makefile
+-    modules/c/src/resinssl/Makefile
+-  ])
+-fi
++#if test -n "${resin_pro_plugin}"; then
++#  AC_OUTPUT([
++#    modules/c/src/resin/Makefile
++#    modules/c/src/resinssl/Makefile
++#  ])
++#fi
