@@ -1,0 +1,206 @@
+--- resin-3.1.12/contrib/init.resin.in	2011-08-24 21:45:57.000000000 +0000
++++ resin-3.1.12p/contrib/init.resin.in	2015-02-01 08:40:52.984961529 +0000
+@@ -1,89 +1,121 @@
+-#!/bin/sh
++#!/bin/bash
+ #
+-# Linux startup script for Resin
+-# chkconfig: 345 85 15
+-# description: Resin is a Java Web server.
+-# processname: wrapper.pl
++# resin		Start/Stop the resin web server.
+ #
+-# To install, configure this file as needed and copy init.resin
+-# to /etc/rc.d/init.d as resin.  Then use "# /sbin/chkconfig resin reset"
+-#
+-JAVA_HOME=@JAVA_HOME@
+-RESIN_HOME=@resin_home@
+-
+-export JAVA_HOME RESIN_HOME
+-
+-JAVA=$JAVA_HOME/bin/java
+-#
+-# If you want to start the entire Resin process as a different user,
+-# set this to the user name.  If you need to bind to a protected port,
+-# e.g. port 80, you can't use USER, but will need to use bin/resin.
+-#
+-USER=
+-#
+-# Set to the server id to start
+-#
+-#SERVER="-server app-a"
+-#
+-ARGS="-resin-home $RESIN_HOME $SERVER"
+-
+-if test -r /lib/lsb/init-functions; then
+-  . /lib/lsb/init-functions
+-else
+-
+-  log_daemon_msg () {
+-      if [ -z "$1" ]; then
+-          return 1
+-      fi
+-
+-      if [ -z "$2" ]; then
+-          echo -n "$1:"
+-          return
+-      fi
+-    
+-      echo -n "$1: $2"
+-  }
+-  
+-  log_end_msg () {
+-      [ -z "$1" ] && return 1
+-
+-      if [ $1 -eq 0 ]; then
+-        echo " ."
+-      else
+-        echo " failed!"
+-      fi
+-    
+-    return $1
+-  }
+-
+-fi
++# chkconfig: 2345 95 55
++# Description: This will manage the resin web server daemon.  Usually the \
++#              Caucho provided httpd.sh will properly start and stop the \
++#              daemon, however occasionally a java child process will get \
++#              lost by the resin watchdog and need cleanup outside of the \
++#              standard httpd.sh script.  This init script will handle \
++#              those occurances.
++#
++
++### BEGIN INIT INFO
++# Provides:          resin
++# Required-Start:    $local_fs networking
++# Required-Stop:     $local_fs networking
++# Default-Start:     2345
++# Default-Stop:      90
++# Short-Description: The resin web server
++# Description:       The resin web server that serves java and jsp
++### END INIT INFO
++
++RETVAL=0
++prog="resin"
++resin_home='@resin_home@'
++exec="$resin_home/bin/httpd.sh"
++lockfile=/var/lock/subsys/$prog
++runas=root
++
++# Source the function library.
++. /etc/rc.d/init.d/functions
++
++[ $UID -eq 0 ] && [ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
++
++start() {
++  if [ $UID -ne 0 ] ; then
++    echo "User has insufficient privilege."
++    exit 4
++  fi
++
++  [ -x $exec ] || exit 5
++  echo -n $"Starting $prog: "
++  su - $runas -c "$exec start" > /dev/null
++  RETVAL=$?
++  success
++  echo
++  [ $RETVAL -eq 0 ] && touch $lockfile
++}
++
++stop() {
++  if [ $UID -ne 0 ] ; then
++    echo "User has insufficient privilege."
++    exit 4
++  fi
++
++  echo -n $"Stopping $prog: "
++  su - $runas -c "$exec stop" > /dev/null
++  RETVAL=$?
++
++  # let's check to make sure resin went away
++  I=0
++  while [ $I -le 60 ] ; do
++    PIDS=`pgrep -f "$resin_home" -u $runas | xargs`
++    if [[ -z "$PIDS" ]]; then
++      # Yay, resin is gone.
++      I=10000
++      RETVAL=0
++      success
++      break
++    elif [ $I -le 10 ]; then
++      # Wait up to 10 seconds before getting the hammer out
++      sleep 1
++      I=$(($I + 1))
++    elif [ $I -gt 10 ]; then
++      kill -9 $PIDS
++      sleep 1
++      I=$(($I + 1))
++    fi
++    RETVAL=$I
++    warning
++  done
++
++  echo
++  [ $RETVAL -eq 0 ] && rm -f $lockfile
++}
++
++status() {
++  PIDS=`pgrep -f "$resin_home" -u $runas | xargs`
++  if [[ -z "$PIDS" ]]; then
++    failure
++    echo $"${prog} is not running."
++    return 3
++  else
++    success
++    echo $"${prog} is running with pids: ${PIDS}"
++    su - $runas -c "$exec status"
++    return 0
++  fi
++}
+ 
+ case "$1" in
+-  start)
+-	log_daemon_msg "Starting resin"
+-	if test -n "$USER"; then
+-  	  su $USER -c "$JAVA -jar $RESIN_HOME/lib/resin.jar $ARGS start" 1>/dev/null 2>/dev/null
+-	else
+-  	  $JAVA -jar $RESIN_HOME/lib/resin.jar $ARGS start 1>/dev/null 2>/dev/null
+-        fi
+-	log_end_msg $?
+-	;;
+-  stop)
+-	log_daemon_msg "Stopping resin"
+-	if test -n "$USER"; then
+-  	  su $USER -c "$JAVA -jar $RESIN_HOME/lib/resin.jar $ARGS stop" 1>/dev/null 2>/dev/null
+-	else
+-  	  $JAVA -jar $RESIN_HOME/lib/resin.jar $ARGS stop 1>/dev/null 2>/dev/null
+-        fi
+-	log_end_msg $?
+-	;;
+   restart)
+-	$0 stop
+-	$0 start
+-	;;
++    stop
++    start
++    ;;
++  status)
++    status
++    ;;
++  stop)
++    stop
++    ;;
++  start)
++    start
++    ;;
+   *)
+-	echo "Usage: $0 {start|stop|restart}"
+-	exit 1
++    echo $"Usage: $0 {start|stop|restart|status}"
++    RETVAL=2
++    ;;
+ esac
+-
+-exit 0
++exit $RETVAL
