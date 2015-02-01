@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# This Vagrantfile will build an ROM of the current version of 
+# This Vagrantfile will build a rpm of the latest 3.x version of 
 # resin.  Just run 'vagrant up' and wait for the rpm and srpm to
 # be written to the cwd.
 
