@@ -1,6 +1,6 @@
 --- resin-3.1.12/contrib/init.resin.in	2011-08-24 21:45:57.000000000 +0000
 +++ resin-3.1.12p/contrib/init.resin.in	2015-02-01 08:40:52.984961529 +0000
-@@ -1,89 +1,121 @@
+@@ -1,89 +1,125 @@
 -#!/bin/sh
 +#!/bin/bash
  #
@@ -184,15 +184,19 @@
 -	;;
 +    stop
 +    start
++    RETVAL=$?
 +    ;;
 +  status)
 +    status
++    RETVAL=$?
 +    ;;
 +  stop)
 +    stop
++    RETVAL=$?
 +    ;;
 +  start)
 +    start
++    RETVAL=$?
 +    ;;
    *)
 -	echo "Usage: $0 {start|stop|restart}"

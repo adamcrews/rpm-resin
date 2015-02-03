@@ -1,5 +1,5 @@
 %global VERSION 3.1.12
-%global Release 6
+%global Release 7
 %global Dist pd
 
 Name:		resin
