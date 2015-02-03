@@ -83,7 +83,7 @@
 +
 +RETVAL=0
 +prog="resin"
-+resin_home='@resin_home@'
++resin_home='@prefix@'
 +exec="$resin_home/bin/httpd.sh"
 +lockfile=/var/lock/subsys/$prog
 +runas=root
